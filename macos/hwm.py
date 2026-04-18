@@ -34,6 +34,8 @@ while True:
 
         cpuTemp = int(float(metrics["temp"]["cpu_temp_avg"]))
         gpuTemp = int(float(metrics["temp"]["gpu_temp_avg"]))
+        
+        # sometimes when gpu sleeps macmon stops and uses default value = 2 degrees
         if gpuTemp < minGpuTemp:
             gpuTemp = lastGpuTemp
         else:
