@@ -9,6 +9,8 @@ import json
 
 maxGpuMem = 0
 arduinoPort = "/dev/cu.usbserial-110"
+minGpuTemp = 10
+lastGpuTemp = 0
 
 arduino = Serial(port=arduinoPort, baudrate=9600, timeout=1)
 while True:
@@ -29,6 +31,11 @@ while True:
 
     cpuTemp = int(float(metrics["temp"]["cpu_temp_avg"]))
     gpuTemp = int(float(metrics["temp"]["gpu_temp_avg"]))
+    # sometimes when gpu sleeps macmon stops and uses default value = 2 degrees
+    if gpuTemp < minGpuTemp:
+        gpuTemp = lastGpuTemp
+    else:
+        lastGpuTemp = gpuTemp
 
     ram = int(psutil.virtual_memory().percent)
 
