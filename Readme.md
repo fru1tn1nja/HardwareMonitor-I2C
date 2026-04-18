@@ -116,9 +116,17 @@ Reason: this project expects a VRAM-like metric, but Apple Silicon uses unified
 memory, and there is no simple honest replacement for `GPUMEM` in the current
 protocol.
 
-Temperatures are read on a best-effort basis from `powermetrics --samplers smc`.
-If your Mac does not expose CPU or GPU temperature in that output, the script
-will keep those fields as `0`.
+The macOS sender now reads GPU usage, GPU frequency, GPU power,
+CPU temperature and GPU temperature from `macmon`.
+
+Install `macmon` with Homebrew:
+```
+brew install macmon
+```
+
+Important limitation:
+if `macmon` is not installed or is not available in `PATH`,
+`macos/hwm.py` will fail on startup.
 
 Install dependencies:
 ```
@@ -136,11 +144,7 @@ Example:
 arduinoPort = "/dev/cu.usbserial-110"
 ```
 
-For GPU usage and temperature metrics the script uses `powermetrics`, so run it
-with `sudo`. If you run it without `sudo`, GPU usage and temperatures will stay
-`0`.
-
 Run the macOS sender:
 ```
-sudo .venv/bin/python3 macos/hwm.py
+.venv/bin/python3 macos/hwm.py
 ```

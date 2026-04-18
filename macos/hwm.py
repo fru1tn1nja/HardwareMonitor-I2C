@@ -4,8 +4,7 @@ import time
 import struct
 import psutil
 import subprocess
-import re
-import os
+import json
 
 
 maxGpuMem = 0
@@ -13,42 +12,23 @@ arduinoPort = "/dev/cu.usbserial-110"
 
 arduino = Serial(port=arduinoPort, baudrate=9600, timeout=1)
 while True:
-    gpuUsage = 0
     gpuMemPercentUsage = 0
-    gpuTemp = 0
-    cpuTemp = 0
-    gpuFreq = 0
-    gpuPower = 0
 
-    try:
-        if os.geteuid() == 0:
-            gpuInfo = subprocess.run(
-                ["powermetrics", "-n", "1", "-i", "1000", "--samplers", "gpu_power"],
-                capture_output=True,
-                text=True,
-                timeout=3,
-            ).stdout
-        else:
-            gpuInfo = subprocess.run(
-                ["sudo", "-n", "powermetrics", "-n", "1", "-i", "1000", "--samplers", "gpu_power"],
-                capture_output=True,
-                text=True,
-                timeout=3,
-            ).stdout
+    macmonInfo = subprocess.run(
+        ["macmon", "pipe", "-s", "1"],
+        capture_output=True,
+        text=True,
+        timeout=4,
+        check=True,
+    ).stdout.splitlines()[0]
 
-        gpuUsageMatch = re.search(r"GPU HW active residency:\s+([0-9.]+)%", gpuInfo)
-        if gpuUsageMatch:
-            gpuUsage = int(float(gpuUsageMatch.group(1)))
+    metrics = json.loads(macmonInfo)
+    gpuUsage = int(float(metrics["gpu_usage"][1]) * 100)
+    gpuFreq = int(float(metrics["gpu_usage"][0]))
+    gpuPower = int(float(metrics["gpu_power"]) * 1000)
 
-        gpuFreqMatch = re.search(r"GPU HW active frequency:\s+([0-9]+)\s+MHz", gpuInfo)
-        if gpuFreqMatch:
-            gpuFreq = int(gpuFreqMatch.group(1))
-
-        gpuPowerMatch = re.search(r"GPU Power:\s+([0-9]+)\s+mW", gpuInfo)
-        if gpuPowerMatch:
-            gpuPower = int(gpuPowerMatch.group(1))
-    except Exception:
-        pass
+    cpuTemp = int(float(metrics["temp"]["cpu_temp_avg"]))
+    gpuTemp = int(float(metrics["temp"]["gpu_temp_avg"]))
 
     ram = int(psutil.virtual_memory().percent)
 
