@@ -101,19 +101,24 @@ systemctl enable hwm --now
 
 # macOS support
 For macOS a separate minimal sender script is available in `macos/hwm.py`.
-It keeps the same Arduino protocol, but currently sends only simple metrics:
+It keeps the same Arduino protocol and currently sends:
 
 1. CPU usage
-2. RAM usage
-3. SWAP usage
-4. Disk usage
-
-The following fields are currently sent as `0` on macOS:
-
-1. GPU usage
-2. GPU memory usage
+2. GPU usage
 3. CPU temperature
 4. GPU temperature
+5. RAM usage
+6. SWAP usage
+7. Disk usage
+
+`GPU memory usage` is currently left as `0` on Apple Silicon.
+Reason: this project expects a VRAM-like metric, but Apple Silicon uses unified
+memory, and there is no simple honest replacement for `GPUMEM` in the current
+protocol.
+
+Temperatures are read on a best-effort basis from `powermetrics --samplers smc`.
+If your Mac does not expose CPU or GPU temperature in that output, the script
+will keep those fields as `0`.
 
 Install dependencies:
 ```
@@ -131,7 +136,11 @@ Example:
 arduinoPort = "/dev/cu.usbserial-110"
 ```
 
+For GPU usage and temperature metrics the script uses `powermetrics`, so run it
+with `sudo`. If you run it without `sudo`, GPU usage and temperatures will stay
+`0`.
+
 Run the macOS sender:
 ```
-python3 macos/hwm.py
+sudo .venv/bin/python3 macos/hwm.py
 ```
