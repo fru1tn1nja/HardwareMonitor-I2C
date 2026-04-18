@@ -17,6 +17,25 @@ Software:
 Advanced:
   1. 3d printer ([Case model](https://www.thingiverse.com/thing:6146515))
 
+# Python venv
+Recommended:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install dependencies from the `requirements.txt` file of the needed solution:
+```
+pip3 install -r amd/requirements.txt
+pip3 install -r nvidia/requirements.txt
+python3 -m pip install -r macos/requirements.txt
+```
+
+Deactivate when done:
+```
+deactivate
+```
+
 # Setup via script
 Using install.sh
 
@@ -34,12 +53,12 @@ Install libs + add access:
 
 For NVIDIA gpu
 ```
-pip3 install pyserial psutil nvitop
+pip3 install -r nvidia/requirements.txt
 ```
 
 For AMD gpu
 ```
-pip3 install pyserial psutil pyamdgpuinfo
+pip3 install -r amd/requirements.txt
 ```
 
 Add permistion to /dev/ttyUSBx
@@ -78,4 +97,41 @@ WantedBy=multi-user.target
 Add deamon to startup and run
 ```
 systemctl enable hwm --now
+```
+
+# macOS support
+For macOS a separate minimal sender script is available in `macos/hwm.py`.
+It keeps the same Arduino protocol, but currently sends only simple metrics:
+
+1. CPU usage
+2. RAM usage
+3. SWAP usage
+4. Disk usage
+
+The following fields are currently sent as `0` on macOS:
+
+1. GPU usage
+2. GPU memory usage
+3. CPU temperature
+4. GPU temperature
+
+Install dependencies:
+```
+python3 -m pip install -r macos/requirements.txt
+```
+
+Find the Arduino serial device:
+```
+ls /dev/cu.usb*
+```
+
+Open `macos/hwm.py`, find `arduinoPort`, and change it manually to your device path.
+Example:
+```
+arduinoPort = "/dev/cu.usbserial-110"
+```
+
+Run the macOS sender:
+```
+python3 macos/hwm.py
 ```
